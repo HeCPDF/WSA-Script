@@ -142,15 +142,41 @@ jobs:
         with:
           name: ${{ steps.wsa.outputs.artifact }}
           path: output
+
+      - name: Compress Output Folder 🗜️
+        if: inputs.compression != '.zip'
+        run: |
+          cd output
+          tar -cvJf output.tar.xz ./*
+          mv output.tar.xz ../
+        working-directory: ${{ github.workspace }}
+
       - name: Create Release 🚀
-        if: always()
+        if: github.event_name == 'push' && inputs.compression != '.zip'
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          files: ${{ steps.wsa.outputs.artifact }}
-          tag_name: release-${{ github.run_number }}
-          release_name: WSA Release - ${{ github.run_number }}
-          body: 'Release WSA custom build artifact'
-          draft: false
+          tag_name: v${{ steps.wsa.outputs.artifact }}
+          release_name: Custom Build - ${{ steps.wsa.outputs.artifact }}
+          body: Custom Build - ${{ steps.wsa.outputs.artifact }}
+
+      - name: Upload Release Asset 📦
+        if: github.event_name == 'push' && inputs.compression != '.zip'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: output.tar.xz
+          asset_name: output.tar.xz
+          asset_content_type: application/x-xz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete Local Compressed Artifact 🗑️
+        if: inputs.compression != '.zip'
+        run: |
+          rm -f output.tar.xz
+        working-directory: ${{ github.workspace }}
