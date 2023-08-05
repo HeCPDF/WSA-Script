@@ -151,6 +151,13 @@ jobs:
           mv output.tar.xz ../
         working-directory: ${{ github.workspace }}
 
+      - name: Upload Compressed Artifact 📦
+        if: inputs.compression != '.zip'
+        uses: actions/upload-artifact@v3
+        with:
+          name: output.tar.xz
+          path: output.tar.xz
+
       - name: Create Release 🚀
         if: github.event_name == 'push' && inputs.compression != '.zip'
         id: create_release
@@ -172,8 +179,6 @@ jobs:
           asset_path: output.tar.xz
           asset_name: output.tar.xz
           asset_content_type: application/x-xz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Delete Local Compressed Artifact 🗑️
         if: inputs.compression != '.zip'
