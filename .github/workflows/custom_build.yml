@@ -142,3 +142,12 @@ jobs:
         with:
           name: ${{ steps.wsa.outputs.artifact }}
           path: output
+      - name: Create Release 🚀
+        if: always()
+        uses: softprops/action-gh-release@v1
+        with:
+          files: ${{ steps.wsa.outputs.artifact }}
+          tag_name: ${{ format('{0,date,yyyy-MM-dd-HH-mm}', github.run_id) }}
+          name: WSA Release - ${{ format('{0,date,yyyy-MM-dd HH:mm}', github.run_id) }}
+          body: 'Release WSA custom build artifact'
+          draft: false
