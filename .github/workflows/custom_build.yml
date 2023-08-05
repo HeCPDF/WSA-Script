@@ -142,46 +142,28 @@ jobs:
         with:
           name: ${{ steps.wsa.outputs.artifact }}
           path: output
-
-      - name: Compress Output Folder 🗜️
-        if: inputs.compression != '.zip'
-        run: |
-          cd output
-          tar -cvJf output.tar.xz ./*
-          mv output.tar.xz ../
-        working-directory: ${{ github.workspace }}
-
-      - name: Upload Compressed Artifact 📦
-        if: inputs.compression != '.zip'
-        uses: actions/upload-artifact@v3
-        with:
-          name: output.tar.xz
-          path: output.tar.xz
+          
+      - name: Compress output/ to zip 🗜️
+        run: zip -r output.zip output
 
       - name: Create Release 🚀
-        if: github.event_name == 'push' && inputs.compression != '.zip'
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: v${{ steps.wsa.outputs.artifact }}
-          release_name: Custom Build - ${{ steps.wsa.outputs.artifact }}
-          body: Custom Build - ${{ steps.wsa.outputs.artifact }}
+          tag_name: v${{ github.run_number }}
+          release_name: Release v${{ github.run_number }}
+          draft: false
+          prerelease: false
 
       - name: Upload Release Asset 📦
-        if: github.event_name == 'push' && inputs.compression != '.zip'
+        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: output.tar.xz
-          asset_name: output.tar.xz
-          asset_content_type: application/x-xz
-
-      - name: Delete Local Compressed Artifact 🗑️
-        if: inputs.compression != '.zip'
-        run: |
-          rm -f output.tar.xz
-        working-directory: ${{ github.workspace }}
+          asset_path: output.zip
+          asset_name: WSA_Custom_Build_${{ github.run_number }}.zip
+          asset_content_type: application/zip
