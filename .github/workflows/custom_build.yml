@@ -42,8 +42,8 @@ on:
         type: choice
         description: Compression format.
         required: true
-        options: [".zip",".7z",".tar.xz"]
-        default: ".zip"
+        options: [".zip",".7z"]
+        default: ".7z"
       remove_amazon:
         description: "Remove Amazon Appstore from the system"
         required: true
@@ -142,28 +142,3 @@ jobs:
         with:
           name: ${{ steps.wsa.outputs.artifact }}
           path: output
-          
-      - name: Compress output/ to zip 🗜️
-        run: zip -r output.zip output
-
-      - name: Create Release 🚀
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: v${{ github.run_number }}
-          release_name: Release v${{ github.run_number }}
-          draft: false
-          prerelease: false
-
-      - name: Upload Release Asset 📦
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: output.zip
-          asset_name: WSA_Custom_Build_${{ github.run_number }}.zip
-          asset_content_type: application/zip
